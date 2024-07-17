@@ -11,7 +11,6 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
                                   scheduled_monthly_payment: float,
                                   loan_start_date: date, day_count_convention_name: str,
                                   origination_fee: float):
-
     # Initialize lists to store the schedule details
     dates = []
     payment_amounts = []
@@ -95,4 +94,5 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
         "Total_of_Payments": total_of_payments,
         "Ending_Balance": balance
     }
+
     return amort_schedule, loan_metrics
