@@ -1,6 +1,6 @@
 import argparse
 from datetime import date
-
+import tabulate
 from src.amortization_schedule_finder import amortization_schedule_finder
 
 
@@ -32,7 +32,7 @@ def main():
 
     # Print the amortization schedule
     print("Amortization Schedule:")
-    print(schedule.to_string(index=False))
+    print(schedule.to_markdown())
 
     # Print the loan metrics
     print("\nLoan Metrics:")
