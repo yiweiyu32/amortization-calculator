@@ -9,3 +9,6 @@
 * Handling of origination fee
 * Interest payment and principal payment
 * Payment amount
+## How to use
+Within the virtual environment
+python .\main.py --principal 100000 --annual_interest_rate 0.05 --term 36 --loan_start_date 2024-07-02
