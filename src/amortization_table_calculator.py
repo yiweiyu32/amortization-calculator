@@ -4,13 +4,13 @@ from dateutil.relativedelta import relativedelta
 
 from src.day_count_convention import get_day_count_convention
 
-zero_float = 0.0
+zero_float_type = 0.0
 
 
 def amortization_table_calculator(principal: float, annual_interest_rate: float, term: int,
                                   scheduled_monthly_payment: float,
-                                  loan_start_date: date, day_count_convention_name: str = 'Actual/Actual',
-                                  origination_fee: float = 0.0):
+                                  loan_start_date: date, day_count_convention_name: str,
+                                  origination_fee: float):
 
     # Initialize lists to store the schedule details
     dates = []
@@ -28,10 +28,10 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
 
     dates.append(current_date)
     payment_amounts.append(payment_amount)
-    principal_payments.append(zero_float)
-    interest_payments.append(zero_float)
+    principal_payments.append(zero_float_type)
+    interest_payments.append(zero_float_type)
     principal_balances.append(principal)
-    year_fractions.append(zero_float)
+    year_fractions.append(zero_float_type)
     fee_payments.append(origination_fee)
 
     if current_date.day > 28:
@@ -63,13 +63,14 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
         principal_payments.append(principal_payment)
         interest_payments.append(interest_payment)
         principal_balances.append(balance)
-        fee_payments.append(zero_float)
+        fee_payments.append(zero_float_type)
 
         # Advance the date by one month
         current_date = next_date
         next_date = current_date + relativedelta(months=+1)
 
     last_payment = payment_amount
+    last_payment_date = current_date
 
     # Create a DataFrame to store the amortization schedule
     amort_schedule = pd.DataFrame({
@@ -87,7 +88,9 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
 
     loan_metrics = {
         "First_Payment_Date": first_payment_date,
-        "Last_Payment": last_payment,
+        "First_Payment_Amount": scheduled_monthly_payment,
+        "Last_Payment_Date": last_payment_date,
+        "Last_Payment_Amount": last_payment,
         "Finance_Charge": finance_charge,
         "Total_of_Payments": total_of_payments,
         "Ending_Balance": balance

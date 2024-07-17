@@ -1,14 +1,42 @@
 from datetime import date
-from src.amortization_schedule_finder import find_first_payment
+import unittest
+from src.amortization_schedule_finder import amortization_schedule_finder
 
-principal = 10000.0  # Loan amount
-annual_interest_rate = 0.1381  # Annual interest rate in percentage
-term = 60  # Loan term in years
-loan_start_date = date(2024, 7, 2)  # Loan start date
 
-amortization_schedule, first_payment = \
-    find_first_payment(principal=principal, annual_interest_rate=annual_interest_rate, term=term,
-                       loan_start_date=loan_start_date)
+class TestAmortizationScheduleFinder(unittest.TestCase):
 
-# print("result")
-print(amortization_schedule, first_payment)
+    def setUp(self):
+        # Initialize common parameters for tests
+        self.principal = 10000.0
+        self.annual_interest_rate = 0.1381
+        self.term = 60
+        self.loan_start_date = date(2024, 7, 2)
+        self.day_count_convention_name = 'Actual/Actual'
+        self.origination_fee = 0.0
+
+    def test_amortization_schedule_finder(self):
+        # Test the amortization schedule finder function
+        amort_schedule, loan_metrics_current = amortization_schedule_finder(
+            self.principal, self.annual_interest_rate, self.term,
+            self.loan_start_date, self.day_count_convention_name, self.origination_fee
+        )
+
+        # Check that the amortization schedule DataFrame has the expected columns
+        expected_columns = [
+            "Date", "Year_Fraction", "Principal_Payment", "Interest_Payment",
+            "Fee_Payment", "Payment_Amount", "Balance"
+        ]
+        self.assertEqual(list(amort_schedule.columns), expected_columns)
+
+        # Check that the length of the schedule matches the term
+        self.assertEqual(len(amort_schedule), self.term + 1)
+
+        # Check that the ending balance is close to zero
+        self.assertAlmostEqual(loan_metrics_current["Ending_Balance"], 0.0, places=2)
+        self.assertAlmostEqual(loan_metrics_current["First_Payment_Amount"], 231.73, places=2)
+        self.assertAlmostEqual(loan_metrics_current["Finance_Charge"], 3903.44, places=2)
+        self.assertAlmostEqual(loan_metrics_current["Total_of_Payments"], 13903.44, places=2)
+
+
+if __name__ == '__main__':
+    unittest.main()

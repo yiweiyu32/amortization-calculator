@@ -7,12 +7,12 @@ from src.day_count_convention import Actual360, Actual365, ActualActual, get_day
 class TestDayCountConventions(unittest.TestCase):
 
     def test_days_between(self):
-        dcc = Actual360(start_date=date(2023, 1, 1), end_date=date(2023, 12, 31))
-        self.assertEqual(dcc.days_between(), 364)
+        dcc = Actual360(start_date=date(2024, 1, 1), end_date=date(2025, 1, 1))
+        self.assertEqual(dcc.days_between(), 366)
 
     def test_actual360(self):
-        dcc = Actual360(start_date=date(2023, 1, 1), end_date=date(2023, 12, 31))
-        self.assertAlmostEqual(dcc.year_fraction(), 364 / 360, places=6)
+        dcc = Actual360(start_date=date(2024, 1, 1), end_date=date(2025, 1, 31))
+        self.assertAlmostEqual(dcc.year_fraction(), 396 / 360, places=6)
 
     def test_actual365(self):
         dcc = Actual365(start_date=date(2023, 1, 1), end_date=date(2023, 12, 31))
