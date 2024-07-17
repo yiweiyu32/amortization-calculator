@@ -8,3 +8,4 @@
 * Determination of monthly payment amount
 * Handling of origination fee
 * Interest payment and principal payment
+* Payment amount

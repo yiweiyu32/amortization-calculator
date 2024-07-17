@@ -1,4 +1,3 @@
-
 import pandas as pd
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -10,7 +9,7 @@ zero_float = 0.0
 
 def amortization_table_calculator(principal: float, annual_interest_rate: float, term: int,
                                   scheduled_monthly_payment: float,
-                                  loan_start_date: date, convention_name: str = 'Actual/Actual',
+                                  loan_start_date: date, day_count_convention_name: str = 'Actual/Actual',
                                   origination_fee: float = 0.0):
 
     # Initialize lists to store the schedule details
@@ -25,7 +24,6 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
     # Initial balance is the principal
     balance = principal
     current_date = loan_start_date
-
     payment_amount = origination_fee
 
     dates.append(current_date)
@@ -44,10 +42,9 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
     first_payment_date = next_date
 
     for _ in range(term):
-        # Move to the next month
         dates.append(next_date)
 
-        day_count_convention = get_day_count_convention(convention_name, current_date, next_date)
+        day_count_convention = get_day_count_convention(day_count_convention_name, current_date, next_date)
         year_fraction = day_count_convention.year_fraction()
         year_fractions.append(year_fraction)
 
@@ -68,6 +65,7 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
         principal_balances.append(balance)
         fee_payments.append(zero_float)
 
+        # Advance the date by one month
         current_date = next_date
         next_date = current_date + relativedelta(months=+1)
 
@@ -76,8 +74,6 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
     # Create a DataFrame to store the amortization schedule
     amort_schedule = pd.DataFrame({
         "Date": dates,
-        # "Days_in_Year": days_in_year,
-        # "Days_Since_Last_Period": num_days_since_last_period,
         "Year_Fraction": year_fractions,
         "Principal_Payment": principal_payments,
         "Interest_Payment": interest_payments,

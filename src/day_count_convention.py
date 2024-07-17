@@ -32,7 +32,8 @@ class ActualActual(DayCountConvention):
         end_year = self.end_date.year
 
         start_year_days_in_year = 366 if calendar.isleap(start_year) else 365
-        end_year_days_in_year = (366 if calendar.isleap(end_year) else 365)
+        end_year_days_in_year = 366 if calendar.isleap(end_year) else 365
+
         if start_year == end_year:
             return self.days_between() / start_year_days_in_year
         else:
