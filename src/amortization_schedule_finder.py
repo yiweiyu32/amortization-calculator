@@ -1,8 +1,12 @@
 from dateutil.relativedelta import relativedelta
 
+from src.helpers import round_fast
 from src.payment_table_calculator import amortization_table_calculator
 from datetime import date
 import numpy_financial as npf
+
+
+# import time
 
 zero_cent_threshold = 0.005
 one_cent = 0.01
@@ -12,7 +16,7 @@ apr_increment = 0.001
 def amortization_schedule_finder(principal: float, annual_interest_rate: float, term: int,
                                  loan_start_date: date, day_count_convention_name: str,
                                  origination_fee: float):
-    def get_amort_schedule_n_loan_metrics(scheduled_monthly_payment):
+    def get_amort_table_n_loan_metrics(scheduled_monthly_payment):
         amort_schedule, loan_metrics = \
             amortization_table_calculator(principal=principal, annual_interest_rate=annual_interest_rate, term=term,
                                           loan_start_date=loan_start_date,
@@ -20,6 +24,15 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float, 
                                           origination_fee=origination_fee,
                                           scheduled_monthly_payment=scheduled_monthly_payment)
         return amort_schedule, loan_metrics
+
+    def get_loan_metrics(scheduled_monthly_payment):
+        loan_metrics = \
+            amortization_table_calculator(principal=principal, annual_interest_rate=annual_interest_rate, term=term,
+                                          loan_start_date=loan_start_date,
+                                          day_count_convention_name=day_count_convention_name,
+                                          origination_fee=origination_fee,
+                                          scheduled_monthly_payment=scheduled_monthly_payment, return_table=False)
+        return loan_metrics
 
     def calculate_apr(loan_metrics):
         # (3) Single advance transaction, with an odd final payment, with or without an odd first period,
@@ -73,23 +86,37 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float, 
     initial_guess = npf.pmt(rate=annual_interest_rate / 12.0, nper=term, pv=-principal)
     first_payment = round(initial_guess, 2)
 
-    amortization_schedule, loan_metrics_res = get_amort_schedule_n_loan_metrics(first_payment)
-    _, loan_metrics_prime = get_amort_schedule_n_loan_metrics(first_payment - one_cent)
+    # start_time = time.time()
+
+    loan_metrics_res = get_loan_metrics(first_payment)
+    loan_metrics_prime = get_loan_metrics(first_payment - one_cent)
 
     ending_balance = loan_metrics_res.get("Ending_Balance")
     last_payment = loan_metrics_res.get("Last_Payment_Amount")
     ending_balance_prime = loan_metrics_prime.get("Ending_Balance")
 
     while ending_balance > zero_cent_threshold or ending_balance_prime < zero_cent_threshold:
+        # print(first_payment, last_payment, ending_balance, ending_balance_prime, ending_balance / term)
         if ending_balance > zero_cent_threshold:
-            first_payment = round(first_payment + max(ending_balance / term, one_cent), 2)
+            first_payment = round_fast(first_payment + max(ending_balance / term * 0.5, one_cent), 2)
         if ending_balance_prime < zero_cent_threshold:
-            first_payment = round(first_payment - max((first_payment - last_payment) / term, one_cent), 2)
-        amortization_schedule, loan_metrics_res = get_amort_schedule_n_loan_metrics(first_payment)
-        _, loan_metrics_prime = get_amort_schedule_n_loan_metrics(first_payment - one_cent)
+            first_payment = round_fast(first_payment - max((first_payment - last_payment) / term * 0.5, one_cent), 2)
+        loan_metrics_res = get_loan_metrics(first_payment)
+        loan_metrics_prime = get_loan_metrics(first_payment - one_cent)
 
         ending_balance = loan_metrics_res.get("Ending_Balance")
         last_payment = loan_metrics_res.get("Last_Payment_Amount")
         ending_balance_prime = loan_metrics_prime.get("Ending_Balance")
 
-    return amortization_schedule, loan_metrics_res, calculate_apr(loan_metrics_res)
+    amortization_schedule, _ = get_amort_table_n_loan_metrics(first_payment)
+    # end_time = time.time()
+
+    calculated_apr = calculate_apr(loan_metrics_res)
+
+    # end_time2 = time.time()
+    # elapsed_time1 = end_time - start_time
+    # elapsed_time2 = end_time2 - end_time
+    # print(f"Elapsed time: {elapsed_time1} seconds")
+    # print(f"Elapsed time: {elapsed_time2} seconds")
+
+    return amortization_schedule, loan_metrics_res, calculated_apr
