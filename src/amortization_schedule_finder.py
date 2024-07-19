@@ -8,6 +8,7 @@ from src.payment_table_calculator import amortization_table_calculator
 ZERO_CENT_THRESHOLD = 0.005
 ONE_CENT = 0.01
 APR_INCREMENT = 0.001
+TOLERANCE_LEVEL = 0.000001
 
 
 def amortization_schedule_finder(principal: float, annual_interest_rate: float,
@@ -24,8 +25,8 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float,
         return amort_schedule, loan_metrics
 
     def calculate_apr(loan_metrics):
-        # (3) Single advance transaction, with an odd final payment, with or without an odd first period,
-        # and otherwise regular.
+        # (3) Single advance transaction, with an odd final payment, with or without an odd first 
+        # period, and otherwise regular.
 
         amount_advanced = principal - origination_fee
         regular_payment = loan_metrics.get("First_Payment_Amount")
@@ -34,8 +35,8 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float,
 
         length_first_period = relativedelta(first_payment_date, loan_start_date)
 
-        num_unit_periods_in_first_period = length_first_period.years * 12 + length_first_period.months
-        full_unit_period_start = first_payment_date - relativedelta(months=num_unit_periods_in_first_period)
+        num_up_t = length_first_period.years * 12 + length_first_period.months
+        full_unit_period_start = first_payment_date - relativedelta(months=num_up_t)
         fraction_unit_period = (full_unit_period_start - loan_start_date).days / 30.0
 
         initial_guess_apr = npf.rate(term, regular_payment, -amount_advanced, 0.0) * 12.0
@@ -44,28 +45,25 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float,
         def estimate_amount_advanced(apr):
             monthly_rate = apr / 12.0
             discount_start_to_first_unit_period = 1.0 / (1.0 + fraction_unit_period * monthly_rate)
-            discount_first_unit_period_first_pmt = 1.0 / pow(1.0 + monthly_rate, num_unit_periods_in_first_period)
+            discount_first_unit_period_first_pmt = 1.0 / pow(1.0 + monthly_rate, num_up_t)
             discounted_final_payment = (regular_payment * (1.0 - 1.0 / pow(1.0 + monthly_rate, term - 1)) /
                                         (1.0 - 1.0 / (1.0 + monthly_rate)))
             discounted_other_payments = final_payment / pow(1.0 + monthly_rate, term - 1)
             return (discount_start_to_first_unit_period * discount_first_unit_period_first_pmt *
                     (discounted_final_payment + discounted_other_payments))
+        
+        def update_apr(apr):
+            apr_prime = apr + APR_INCREMENT
+            estimated_amount_advanced = estimate_amount_advanced(apr)
+            estimated_amount_advanced_prime = estimate_amount_advanced(apr_prime)
+            new_apr = apr + APR_INCREMENT * (amount_advanced - estimated_amount_advanced) / (estimated_amount_advanced_prime - estimated_amount_advanced)
+            return new_apr
+        
+        new_estimated_apr = update_apr(estimated_apr)
 
-        estimated_apr_prime = estimated_apr + APR_INCREMENT
-        estimated_amount_advanced = estimate_amount_advanced(estimated_apr)
-        estimated_amount_advanced_prime = estimate_amount_advanced(estimated_apr_prime)
-        new_estimated_apr = (estimated_apr + APR_INCREMENT * (amount_advanced - estimated_amount_advanced) /
-                             (estimated_amount_advanced_prime - estimated_amount_advanced))
-        tolerance_level = 0.000001
-
-        while abs(new_estimated_apr - estimated_apr) > tolerance_level:
-            # print(estimated_apr, estimated_apr_prime, new_estimated_apr)
+        while abs(new_estimated_apr - estimated_apr) > TOLERANCE_LEVEL:
             estimated_apr = new_estimated_apr
-            estimated_apr_prime = estimated_apr + APR_INCREMENT
-            estimated_amount_advanced = estimate_amount_advanced(estimated_apr)
-            estimated_amount_advanced_prime = estimate_amount_advanced(estimated_apr_prime)
-            new_estimated_apr = (estimated_apr + APR_INCREMENT * (amount_advanced - estimated_amount_advanced) /
-                                 (estimated_amount_advanced_prime - estimated_amount_advanced))
+            new_estimated_apr = update_apr(new_estimated_apr)
 
         return estimated_apr
 
@@ -83,8 +81,6 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float,
     ending_balance_prime = loan_metrics_prime.get("Ending_Balance")
 
     while ending_balance > ZERO_CENT_THRESHOLD or ending_balance_prime < ZERO_CENT_THRESHOLD:
-        # print(first_payment, last_payment, ending_balance, ending_balance_prime, 
-        # ending_balance / term)
         if ending_balance > ZERO_CENT_THRESHOLD:
             first_payment = round_fast(first_payment +
             max(ending_balance / term * 0.5, ONE_CENT), 2)
