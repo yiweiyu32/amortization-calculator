@@ -3,6 +3,7 @@ from datetime import date
 
 
 class DayCountConvention:
+    """Class representing day count convention"""
     def __init__(self, start_date: date, end_date: date):
         self.start_date = start_date
         self.end_date = end_date

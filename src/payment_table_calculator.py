@@ -1,5 +1,4 @@
 import time
-
 import pandas as pd
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -28,6 +27,7 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
     current_date = loan_start_date
     payment_amount = origination_fee
 
+    # Append first entries to the lists
     dates.append(current_date)
     payment_amounts.append(payment_amount)
     principal_payments.append(zero_float_type)
@@ -36,6 +36,7 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
     year_fractions.append(zero_float_type)
     fee_payments.append(origination_fee)
 
+    # The first payment date should be the same day next month, except for when the day is >28
     if current_date.day > 28:
         next_date = (current_date + relativedelta(months=+2)).replace(day=1)
     else:
@@ -43,13 +44,8 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
 
     first_payment_date = next_date
 
-    # total_time_block_1 = 0
-    # total_time_block_1_5 = 0
-    # total_time_block_2 = 0
-    # total_time_block_3 = 0
-
     for _ in range(term):
-        start_time = time.time()
+        # Calculate year fraction based on day count convention
         day_count_convention = get_day_count_convention(day_count_convention_name, current_date, next_date)
         year_fraction = day_count_convention.year_fraction()
 
@@ -57,24 +53,16 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
         interest_accrued = balance * annual_interest_rate * year_fraction
         interest_payment = round_fast(interest_accrued, 2)
 
-        # end_time_1 = time.time()
-        # elapsed_time_block_1 = end_time_1 - start_time
-        # total_time_block_1 += elapsed_time_block_1
-
         # Calculate principal payment for the current month
         principal_payment = round_fast(min(scheduled_monthly_payment - interest_payment, balance), 2)
 
         # Update the balance
         balance = round_fast(balance - principal_payment, 2)
 
-        # Store details for the current month
+        # Calculate payment amount
         payment_amount = round_fast(interest_payment + principal_payment, 2)
 
-        # end_time_1_5 = time.time()
-        # elapsed_time_block_1_5 = end_time_1_5 - end_time_1
-        # total_time_block_1_5 += elapsed_time_block_1_5
-
-        # if return_table:
+        # Store details for the current month
         dates.append(next_date)
         year_fractions.append(year_fraction)
         payment_amounts.append(payment_amount)
@@ -82,10 +70,6 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
         interest_payments.append(interest_payment)
         principal_balances.append(balance)
         fee_payments.append(zero_float_type)
-
-        # end_time_2 = time.time()
-        # elapsed_time_block_2 = end_time_2 - end_time_1_5
-        # total_time_block_2 += elapsed_time_block_2
 
         # Advance the date by one month
         current_date = next_date
@@ -101,14 +85,9 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
 
         next_date = date(year_temp, month_temp, current_date.day)
 
-    #     end_time_3 = time.time()
-    #     elapsed_time_block_3 = end_time_3 - end_time_2
-    #     total_time_block_3 += elapsed_time_block_3
-    #
-    # print(return_table, total_time_block_1, total_time_block_1_5, total_time_block_2, total_time_block_3)
+    # Calculate loan metrics
     last_payment = payment_amount
     last_payment_date = current_date
-
     finance_charge = round_fast(sum(interest_payments) + sum(fee_payments), 2)
     total_of_payments = round_fast(sum(payment_amounts), 2)
 
