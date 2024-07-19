@@ -25,15 +25,6 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float, 
                                           scheduled_monthly_payment=scheduled_monthly_payment)
         return amort_schedule, loan_metrics
 
-    def get_loan_metrics(scheduled_monthly_payment):
-        loan_metrics = \
-            amortization_table_calculator(principal=principal, annual_interest_rate=annual_interest_rate, term=term,
-                                          loan_start_date=loan_start_date,
-                                          day_count_convention_name=day_count_convention_name,
-                                          origination_fee=origination_fee,
-                                          scheduled_monthly_payment=scheduled_monthly_payment, return_table=False)
-        return loan_metrics
-
     def calculate_apr(loan_metrics):
         # (3) Single advance transaction, with an odd final payment, with or without an odd first period,
         # and otherwise regular.
@@ -88,8 +79,8 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float, 
 
     # start_time = time.time()
 
-    loan_metrics_res = get_loan_metrics(first_payment)
-    loan_metrics_prime = get_loan_metrics(first_payment - one_cent)
+    _, loan_metrics_res = get_amort_table_n_loan_metrics(first_payment)
+    _, loan_metrics_prime = get_amort_table_n_loan_metrics(first_payment - one_cent)
 
     ending_balance = loan_metrics_res.get("Ending_Balance")
     last_payment = loan_metrics_res.get("Last_Payment_Amount")
@@ -101,8 +92,8 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float, 
             first_payment = round_fast(first_payment + max(ending_balance / term * 0.5, one_cent), 2)
         if ending_balance_prime < zero_cent_threshold:
             first_payment = round_fast(first_payment - max((first_payment - last_payment) / term * 0.5, one_cent), 2)
-        loan_metrics_res = get_loan_metrics(first_payment)
-        loan_metrics_prime = get_loan_metrics(first_payment - one_cent)
+        _, loan_metrics_res = get_amort_table_n_loan_metrics(first_payment)
+        _, loan_metrics_prime = get_amort_table_n_loan_metrics(first_payment - one_cent)
 
         ending_balance = loan_metrics_res.get("Ending_Balance")
         last_payment = loan_metrics_res.get("Last_Payment_Amount")

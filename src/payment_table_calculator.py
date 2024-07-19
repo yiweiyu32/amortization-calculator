@@ -13,7 +13,7 @@ zero_float_type = 0.0
 def amortization_table_calculator(principal: float, annual_interest_rate: float, term: int,
                                   scheduled_monthly_payment: float,
                                   loan_start_date: date, day_count_convention_name: str,
-                                  origination_fee: float, return_table: bool = True):
+                                  origination_fee: float):
     # Initialize lists to store the schedule details
     dates = []
     payment_amounts = []
@@ -74,14 +74,14 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
         # elapsed_time_block_1_5 = end_time_1_5 - end_time_1
         # total_time_block_1_5 += elapsed_time_block_1_5
 
-        if return_table:
-            dates.append(next_date)
-            year_fractions.append(year_fraction)
-            payment_amounts.append(payment_amount)
-            principal_payments.append(principal_payment)
-            interest_payments.append(interest_payment)
-            principal_balances.append(balance)
-            fee_payments.append(zero_float_type)
+        # if return_table:
+        dates.append(next_date)
+        year_fractions.append(year_fraction)
+        payment_amounts.append(payment_amount)
+        principal_payments.append(principal_payment)
+        interest_payments.append(interest_payment)
+        principal_balances.append(balance)
+        fee_payments.append(zero_float_type)
 
         # end_time_2 = time.time()
         # elapsed_time_block_2 = end_time_2 - end_time_1_5
@@ -122,17 +122,13 @@ def amortization_table_calculator(principal: float, annual_interest_rate: float,
         "Ending_Balance": balance
     }
 
-    if return_table:
-        # Create a DataFrame to store the amortization schedule
-        amort_schedule = pd.DataFrame({
-            "Date": dates,
-            "Year_Fraction": year_fractions,
-            "Principal_Payment": principal_payments,
-            "Interest_Payment": interest_payments,
-            "Fee_Payment": fee_payments,
-            "Payment_Amount": payment_amounts,
-            "Balance": principal_balances
-        })
-        return amort_schedule, loan_metrics
-    else:
-        return loan_metrics
+    amort_schedule = pd.DataFrame({
+        "Date": dates,
+        "Year_Fraction": year_fractions,
+        "Principal_Payment": principal_payments,
+        "Interest_Payment": interest_payments,
+        "Fee_Payment": fee_payments,
+        "Payment_Amount": payment_amounts,
+        "Balance": principal_balances
+    })
+    return amort_schedule, loan_metrics
