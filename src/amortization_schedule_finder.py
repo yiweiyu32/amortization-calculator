@@ -51,14 +51,15 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float,
             discounted_other_payments = final_payment / pow(1.0 + monthly_rate, term - 1)
             return (discount_start_to_first_unit_period * discount_first_unit_period_first_pmt *
                     (discounted_final_payment + discounted_other_payments))
-        
+
         def update_apr(apr):
             apr_prime = apr + APR_INCREMENT
             estimated_amount_advanced = estimate_amount_advanced(apr)
             estimated_amount_advanced_prime = estimate_amount_advanced(apr_prime)
-            new_apr = apr + APR_INCREMENT * (amount_advanced - estimated_amount_advanced) / (estimated_amount_advanced_prime - estimated_amount_advanced)
+            new_apr = apr + APR_INCREMENT * (amount_advanced - estimated_amount_advanced) / (
+                        estimated_amount_advanced_prime - estimated_amount_advanced)
             return new_apr
-        
+
         new_estimated_apr = update_apr(estimated_apr)
 
         while abs(new_estimated_apr - estimated_apr) > TOLERANCE_LEVEL:
@@ -83,10 +84,10 @@ def amortization_schedule_finder(principal: float, annual_interest_rate: float,
     while ending_balance > ZERO_CENT_THRESHOLD or ending_balance_prime < ZERO_CENT_THRESHOLD:
         if ending_balance > ZERO_CENT_THRESHOLD:
             first_payment = round_fast(first_payment +
-            max(ending_balance / term * 0.5, ONE_CENT), 2)
+                                       max(ending_balance / term * 0.5, ONE_CENT), 2)
         if ending_balance_prime < ZERO_CENT_THRESHOLD:
             first_payment = round_fast(first_payment -
-            max((first_payment - last_payment) / term * 0.5, ONE_CENT), 2)
+                                       max((first_payment - last_payment) / term * 0.5, ONE_CENT), 2)
         _, loan_metrics_res = get_amort_table_n_loan_metrics(first_payment)
         _, loan_metrics_prime = get_amort_table_n_loan_metrics(first_payment - ONE_CENT)
 

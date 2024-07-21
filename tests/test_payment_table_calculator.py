@@ -1,8 +1,6 @@
 from datetime import date
-import pandas as pd
 from src.payment_table_calculator import amortization_table_calculator
 import unittest
-from src.day_count_convention import ActualActual
 
 
 class TestAmortizationCalculator(unittest.TestCase):
