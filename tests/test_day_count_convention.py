@@ -10,30 +10,30 @@ class TestDayCountConventions(unittest.TestCase):
         dcc = Actual360(start_date=date(2024, 1, 1), end_date=date(2025, 1, 1))
         self.assertEqual(dcc.days_between(), 366)
 
-    def test_actual360(self):
+    def test_actual_360(self):
         dcc = Actual360(start_date=date(2024, 1, 1), end_date=date(2025, 1, 31))
         self.assertAlmostEqual(dcc.year_fraction(), 396 / 360, places=6)
 
-    def test_actual365(self):
+    def test_actual_365(self):
         dcc = Actual365(start_date=date(2023, 1, 1), end_date=date(2023, 12, 31))
         self.assertAlmostEqual(dcc.year_fraction(), 364 / 365, places=6)
 
-    def test_actualactual_same_year(self):
+    def test_actual_actual_same_year(self):
         dcc = ActualActual(start_date=date(2023, 1, 1), end_date=date(2023, 12, 31))
         self.assertAlmostEqual(dcc.year_fraction(), 364 / 365, places=6)
 
-    def test_actualactual_different_years(self):
+    def test_actual_actual_different_years(self):
         dcc = ActualActual(start_date=date(2023, 12, 31), end_date=date(2024, 1, 2))
         self.assertAlmostEqual(dcc.year_fraction(), 1 / 365 + 1 / 366, places=6)
 
-    def test_actualactual_leap_year_start(self):
+    def test_actual_actual_leap_year_start(self):
         """Test ActualActual where the period starts in a leap year."""
         dcc = ActualActual(start_date=date(2016, 12, 31), end_date=date(2021, 1, 2))
         # Dec 31, 2020 (leap year) + Jan 1, 2021 and Jan 2, 2021 (normal year)
         expected_fraction = 1 / 366 + 1 / 365 + 4
         self.assertAlmostEqual(dcc.year_fraction(), expected_fraction, places=6)
 
-    def test_actualactual_leap_year_end(self):
+    def test_actual_actual_leap_year_end(self):
         """Test ActualActual where the period ends in a leap year."""
         dcc = ActualActual(start_date=date(2018, 12, 31), end_date=date(2020, 1, 2))
         # Dec 31, 2019 (normal year) + Jan 1, 2020 and Jan 2, 2020 (leap year)
