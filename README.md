@@ -3,7 +3,7 @@
 - This python project generates an amortization schedule based on interest rate, loan term, principal amount and origination fee (if any).
 - It also calculates the APR of the loan based on the amortization schedule.
 ## How is it different than any of the amortization calculators you can find on the internet?
-- It is extremely precise. It takes into account the varying number of days in each month which affects how interest is accrued. Also, for each period, payments and balances are rounded to the nearest cent.
+- It is extremely precise. It takes into account the varying number of days in each month which affects how interest is accrued. Also, for each period, payments and balances are rounded to the nearest cent so you don't deal with a fraction of a cent.
 - It aims to be compliant with the relevant regualtion. The APR calculation is done using the actuarial method set forth in appendix J of Regulation Z (Truth in Lending) which is implemented and enforced by the Consumer Financial Protection Bureau.
 ## How to use
 1. Clone the project
